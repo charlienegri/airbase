@@ -89,7 +89,7 @@ def station_metadata(path: Path) -> pl.DataFrame:
     )
 
 
-def obs_time_range(paths: Iterable[Path]) -> Iterator[pl.DataFrame]:
+def obs_time_range(accept_verif_null: bool, paths: Iterable[Path]) -> Iterator[pl.DataFrame]:
     # https://dd.eionet.europa.eu/vocabulary/aq/observationvalidity
     # -99 Not valid due to station maintenance or calibration
     #  -1 Not valid
@@ -104,6 +104,8 @@ def obs_time_range(paths: Iterable[Path]) -> Iterator[pl.DataFrame]:
     #   2 Preliminary verified
     #   3 Not verified
     verification = pl.col("Verification").is_in({1, 2, 3})
+    if accept_verif_null:
+        verification = True
 
     for path in paths:
         df = (
@@ -134,6 +136,7 @@ def obs_time_range(paths: Iterable[Path]) -> Iterator[pl.DataFrame]:
 
 
 def catalog(
+    accept_verif_null: bool,
     data_path: Path,
     metadata: Path,
     *,
@@ -169,7 +172,7 @@ def catalog(
             )
 
         df = (
-            pl.concat(obs_time_range(paths))
+            pl.concat(obs_time_range(accept_verif_null,paths))
             .join(
                 station_metadata(metadata),
                 how="left",
@@ -241,6 +244,7 @@ def catalog(
 
 
 def write_catalog(
+    accept_verif_null: bool,
     path: Path,
     data_path: Path,
     metadata: Path,
@@ -256,6 +260,7 @@ def write_catalog(
         return
 
     df = catalog(
+        accept_verif_null,
         data_path,
         metadata,
         exclude={"catalog", path.stem, "metadata", metadata.stem},
