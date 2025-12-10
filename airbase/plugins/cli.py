@@ -74,12 +74,12 @@ def catalog(
         catalog = obj["path"].joinpath(subdir or "", "catalog.parquet")
 
     typer.echo(ctx.command_path)
-    if subdir == 'historical':
+    if subdir == "historical":
         accept_verif_null = True
     else:
         accept_verif_null = False
     write_catalog(
-        accept_verif_null
+        accept_verif_null,
         catalog,
         catalog.parent,
         metadata,
