@@ -39,7 +39,7 @@ def station_metadata(path: Path) -> pl.DataFrame:
         "Kosovo under UNSCR 1244/99": "Kosovo",
     }
     country_code = DB.COUNTRY_CODE | {
-        "Türkiye": DB.COUNTRY_CODE["Turkey"],
+        "Türkiye": DB.COUNTRY_CODE.get("Turkey", "TR"),
         "Kosovo under UNSCR 1244/99": DB.COUNTRY_CODE["Kosovo"],
         "Ukraine": DB.COUNTRY_CODE.get("Ukraine", "UA"),
         "Georgia": DB.COUNTRY_CODE.get("Georgia", "GE"),
@@ -72,7 +72,7 @@ def station_metadata(path: Path) -> pl.DataFrame:
         .select(
             pl.col("Country").replace(country_name),
             pl.col("Country")
-            .replace_strict(country_code)
+            .replace_strict(country_code, default=None)
             .alias("Country Code"),
             pl.col("Timezone").str.to_uppercase().replace_strict(time_zone),
             "Air Quality Station EoI Code",
@@ -170,7 +170,6 @@ def catalog(
             paths = (
                 path for path in paths if path.stat().st_mtime >= newer_than
             )
-
         df = (
             pl.concat(obs_time_range(accept_verif_null,paths))
             .join(
@@ -181,7 +180,6 @@ def catalog(
             )
             .sort("Samplingpoint", "AggType")
         )
-
     missing = df.filter(pl.any_horizontal(pl.all().is_null()))
     if not missing.is_empty():
         for file in missing.get_column("filename"):
