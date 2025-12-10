@@ -89,7 +89,9 @@ def station_metadata(path: Path) -> pl.DataFrame:
     )
 
 
-def obs_time_range(accept_verif_null: bool, paths: Iterable[Path]) -> Iterator[pl.DataFrame]:
+def obs_time_range(
+    accept_verif_null: bool, paths: Iterable[Path]
+) -> Iterator[pl.DataFrame]:
     # https://dd.eionet.europa.eu/vocabulary/aq/observationvalidity
     # -99 Not valid due to station maintenance or calibration
     #  -1 Not valid
@@ -171,7 +173,7 @@ def catalog(
                 path for path in paths if path.stat().st_mtime >= newer_than
             )
         df = (
-            pl.concat(obs_time_range(accept_verif_null,paths))
+            pl.concat(obs_time_range(accept_verif_null, paths))
             .join(
                 station_metadata(metadata),
                 how="left",
@@ -222,8 +224,8 @@ def catalog(
 
     return df.drop_nulls().select(
         pl.col("filename").str.slice(len(f"{data_path}/")),
-        pl.col("Country").cast(pl.Enum(DB.COUNTRY_CODE.keys())),
-        pl.col("Country Code").cast(pl.Enum(DB.COUNTRY_CODE.values())),
+        pl.col("Country").cast(pl.Categorical),
+        pl.col("Country Code").cast(pl.Categorical),
         "Air Quality Station EoI Code",
         "Air Quality Station Name",
         "Sampling Point Id",
