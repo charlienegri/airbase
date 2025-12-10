@@ -74,7 +74,7 @@ def catalog(
         catalog = obj["path"].joinpath(subdir or "", "catalog.parquet")
 
     typer.echo(ctx.command_path)
-    if subdir == "historical":
+    if subdir == Path("historical"):
         accept_verif_null = True
     else:
         accept_verif_null = False
